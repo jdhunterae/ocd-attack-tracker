@@ -236,3 +236,25 @@ input[type="number"] {
     color: white;
     font-weight: bold;
 }
+
+@media (min-width: 768px) {
+    .container {
+        max-width: 768px;
+    }
+
+    .heatmap-grid {
+        /* More columns for wider screens */
+        grid-template-columns: repeat(30, minmax(20px, 1fr));
+    }
+}
+
+@media (min-width: 1024px) {
+    .container {
+        max-width: 1024px;
+    }
+
+    .heatmap-grid {
+        /* Even more columns */
+        grid-template-columns: repeat(40, minmax(20px, 1fr));
+    }
+}
