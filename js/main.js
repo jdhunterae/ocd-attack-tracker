@@ -1,3 +1,4 @@
+// src/main.js
 import * as dataStorage from './dataStorage.js';
 import * as uiManager from './uiManager.js';
 import * as modalManager from './modalManager.js';
@@ -6,9 +7,6 @@ import * as attackManager from './attackManager.js';
 import * as visualizationManager from './visualizationManager.js';
 
 // --- DOM Elements (Centralized) ---
-// This main script will get the elements and pass them to managers as needed,
-// or managers can get their own specific elements if they are only used there.
-// For now, let's centralize the main ones used across multiple modules.
 const DOM = {
     // Attack Tracking Section
     startAttackBtn: document.getElementById('start-attack-btn'),
@@ -57,6 +55,15 @@ const DOM = {
     customAlertOkBtn: document.getElementById('custom-alert-ok-btn'),
     customAlertCancelBtn: document.getElementById('custom-alert-cancel-btn'),
 };
+
+// --- Debugging: Check if all DOM elements were found ---
+for (const key in DOM) {
+    if (DOM[key] === null) {
+        console.error(`ERROR: DOM element with ID '${key}' not found! Please check index.html.`);
+    }
+}
+console.log('DOM elements collected:', DOM);
+
 
 // --- Initialization Function ---
 function initializeApp() {

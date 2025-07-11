@@ -107,7 +107,7 @@
     <!-- Start Attack Modal -->
     <div id="start-attack-modal" class="modal">
         <div class="modal-content">
-            <span class="close-button" onclick="closeModal('start-attack-modal')">&times;</span>
+            <span class="close-button" data-modal-id="start-attack-modal">&times;</span>
             <h2 class="text-xl font-bold mb-4 text-center">Start New Attack</h2>
             <label for="start-datetime" class="block text-gray-700 text-sm font-bold mb-2">Start Date & Time:</label>
             <input type="datetime-local" id="start-datetime" class="mb-4">
@@ -128,7 +128,7 @@
     <!-- Add Mitigation Modal -->
     <div id="add-mitigation-modal" class="modal">
         <div class="modal-content">
-            <span class="close-button" onclick="closeModal('add-mitigation-modal')">&times;</span>
+            <span class="close-button" data-modal-id="add-mitigation-modal">&times;</span>
             <h2 class="text-xl font-bold mb-4 text-center">Add Mitigation Attempt</h2>
             <label for="mitigation-datetime" class="block text-gray-700 text-sm font-bold mb-2">Mitigation Date &
                 Time:</label>
@@ -147,7 +147,19 @@
         </div>
     </div>
 
+    <!-- Custom Alert Modal (replaces native alert/confirm) -->
+    <div id="custom-alert-modal" class="modal">
+        <div class="modal-content">
+            <h2 class="text-xl font-bold mb-4 text-center" id="custom-alert-title"></h2>
+            <p class="mb-6 text-center" id="custom-alert-message"></p>
+            <div class="flex justify-center gap-4">
+                <button id="custom-alert-ok-btn" class="btn btn-primary">OK</button>
+                <button id="custom-alert-cancel-btn" class="btn btn-secondary hidden">Cancel</button>
+            </div>
+        </div>
+    </div>
 
+    <!-- Main JavaScript module -->
     <script type="module" src="js/main.js"></script>
 </body>
 
