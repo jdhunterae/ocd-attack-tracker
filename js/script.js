@@ -1,16 +1,4 @@
 /********************
- * DATA STORAGE AND INITIALIZATION
- ********************/
-const STORAGE_KEY_ATTACKS = 'mentalHealthTracker_attacks';
-const STORAGE_KEY_LOCATION_TRIGGERS = 'mentalHealthTracker_locationTriggers';
-const STORAGE_KEY_MITIGATIONS = 'mentalHealthTracker_mitigations';
-
-let attacks = JSON.parse(localStorage.getItem(STORAGE_KEY_ATTACKS)) || [];
-let locationTriggers = JSON.parse(localStorage.getItem(STORAGE_KEY_LOCATION_TRIGGERS)) || ['alone', 'phone call', 'driving', 'work', 'social gathering'];
-let mitigations = JSON.parse(localStorage.getItem(STORAGE_KEY_MITIGATIONS)) || ['drinking tea', 'going for a walk', 'playing a game', 'deep breathing', 'talking to a friend'];
-let activeAttack = null;
-
-/********************
  * DOM ELEMENTS
  ********************/
 const startAttackBtn = document.getElementById('start-attack-btn');
