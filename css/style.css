@@ -147,3 +147,92 @@ input[type="number"] {
 .close-button:hover {
     color: #4b5563;
 }
+
+.severity-bar-container {
+    width: 100%;
+    background-color: #e5e7eb;
+    border-radius: 0.5rem;
+    overflow: hidden;
+    height: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.severity-bar {
+    height: 100%;
+    /* Width set by JS */
+    width: 0%;
+    background-color: #f59e0b;
+    transition: width 0.3s ease-in-out;
+}
+
+.severity-text {
+    font-weight: 600;
+    text-align: center;
+    margin-top: 0.5rem;
+}
+
+.heatmap-cell {
+    width: 20px;
+    height: 20px;
+    border: 1px solid #e5e7eb;
+    background-color: #f3f4f6;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.heatmap-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(20px, 1fr));
+    gap: 1px;
+    border: 1px solid #e5e7eb;
+    padding: 5px;
+    /* Enable horizontal scrolling for smaller screens */
+    overflow-x: auto;
+}
+
+.graph-container {
+    width: 100%;
+    /* Fixed height for graphs */
+    height: 300px;
+    /* Allow horizontal scrolling for graphs */
+    overflow-x: auto;
+}
+
+.bar-chart-container {
+    display: flex;
+    align-items: flex-end;
+    height: 100%;
+    padding: 10px;
+    box-sizing: border-box;
+    /* Ensure bars don't shrink too much */
+    min-width: fit-content;
+}
+
+.bar-chart-bar {
+    /* Fixed width for bars */
+    width: 30px;
+    margin: 0 5px;
+    background-color: #4f46e5;
+    transition: height 0.3s ease-in-out;
+    border-radius: 0.5rem 0.5rem 0 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: center;
+    position: relative;
+}
+
+.bar-chart-label {
+    position: absolute;
+    top: -20px;
+    font-size: 0.75rem;
+    color: #6b7280;
+}
+
+.bar-chart-value {
+    position: absolute;
+    bottom: 5px;
+    font-size: 0.875rem;
+    color: white;
+    font-weight: bold;
+}
