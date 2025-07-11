@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Mental Health Tracker</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="css/style.css" />
+</head>
+
+<body class="bg-gray-100 min-h-screen flex items-center justify-center py-8">
+    <div class="container">
+        <h1 class="section-title">Mental Health Tracker</h1>
+
+        <!-- Attack Tracking Section -->
+        <section id="attack-tracking" class="mb-8 p-6 bg-gray-50 rounded-xl shadow-inner">
+            <h2 class="text-xl font-semibold mb-4 text-center">Current Attack Status</h2>
+
+            <div id="no-active-attack" class="text-center text-gray-600 mb-4">
+                No active attack. Click "Start New Attack" to begin tracking.
+            </div>
+
+            <div id="active-attack-display" class="hidden">
+                <p class="text-lg mb-2">
+                    <span class="font-bold">Started:</span>
+                    <span id="attack-start-time"></span>
+                </p>
+                <p class="text-lg mb-2">
+                    <span class="font-bold">Current Severity:</span>
+                    <span id="attack-current-severity" class="font-bold text-amber-600"></span> / 10
+                </p>
+                <div class="severity-bar-container">
+                    <div id="attack-severity-bar" class="severity-bar"></div>
+                </div>
+                <p class="text-lg mb-2">
+                    <span class="font-bold">Location/Triggers:</span>
+                    <span id="attack-tags"></span>
+                </p>
+
+                <h3 class="font-semibold text-lg mt-4 mb-2">Mitigation Attempts:</h3>
+                <ul id="mitigation-list" class="list-disc list-inside mb-4"></ul>
+                <div class="flex flex-col sm:flex-row gap-4">
+                    <button id="add-mitigation-btn" class="btn btn-primary flex-1">Add Mitigation Attempt</button>
+                    <button id="end-attack-btn" class="btn btn-danger flex-1">End Attack</button>
+                </div>
+            </div>
+
+            <div class="text-center mt-6">
+                <button id="start-attack-btn" class="btn btn-primary">Start New Attack</button>
+            </div>
+        </section>
+
+        <!--Data Visualization Section-->
+        <section id="data-visualization" class="mb-8 p-6 bg-gray-50 rounded-50 rounded-xl shadow-inner">
+            <h2 class="text-xl font-semibold mb-4 text-center">Data Analysis</h2>
+
+            <div class="mb-6">
+                <h3 class="font-semibold text-lg mb-2">Attack Frequency (Last 30 Days)</h3>
+
+                <div class="graph-container">
+                    <div id="frequency-bar-chart" class="bar-chart-container">
+                        <!-- Bars will be rendered here by JS -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-6">
+                <h3 class="font-semibold text-lg mb-2">Severity Heatmap (Last 90 Days)</h3>
+
+                <div id="severity-heatmap" class="heatmap-grid">
+                    <!-- Heatmap cells will be rendered here by JS-->
+                </div>
+            </div>
+
+            <div class="mb-6">
+                <h3 class="font-semibold text-lg mb-2">Top Triggers</h3>
+
+                <ul id="top-triggers-list" class="list-disc list-inside"></ul>
+            </div>
+
+            <div class="mb-6">
+                <h3 class="font-semibold text-lg mb-2">Top Mitigations</h3>
+
+                <ul id="top-mitigations-list" class="list-disc list-inside"></ul>
+            </div>
+        </section>
+
+        <!-- Tag Management Section -->
+        <section id="tag-management" class="p-6 bg-gray-50 rounded-xl shadow-inner">
+            <h2 class="text-xl font-semibold mb-4 text-center">Manage Tags</h2>
+
+            <div class="mb-6">
+                <h3 class="font-semibold text-lg mb-2">Location/Trigger Tags</h3>
+
+                <div id="location-trigger-tags" class="flex flex-wrap gap-2 mb-2"></div>
+                <input type="text" id="new-location-trigger-tag-input" placeholder="New location/trigger tag name"
+                    class="mb-2" />
+                <button id="add-location-trigger-tag-btn" class="btn btn-secondary w-full">Add New Location/Trigger
+                    Tag</button>
+            </div>
+            <div class="mb-6">
+                <h3 class="font-semibold text-lg mb-2">Mitigation/Relief Tags</h3>
+
+                <div id="mitigation-relief-tags" class="flex flex-wrap gap-2 mb-2"></div>
+                <input type="text" id="new-mitigation-relief-tag-input" placeholder="New Mitigation/Relief tag name"
+                    class="mb-2" />
+                <button id="add-mitigation-relief-tag-btn" class="btn btn-secondary w-full">Add New Mitigation/Relief
+                    Tag</button>
+            </div>
+        </section>
+
+        <script src="js/script.js"></script>
+</body>
+
+</html>
