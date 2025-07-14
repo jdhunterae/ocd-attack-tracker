@@ -34,15 +34,17 @@ The JavaScript code has been organized into a modular structure for better maint
 
 ```
 .
-├── index.html              # Main HTML file, loads the app and its styles.
-└── src/
-    ├── script.js           # Main entry point, initializes the app and sets up event listeners.
-    ├── dataStorage.js      # Handles all interactions with localStorage for data persistence.
-    ├── uiManager.js        # Manages all DOM updates and rendering of app components.
-    ├── modalManager.js     # Controls the opening, closing, and state of all modals.
-    ├── tagManager.js       # Contains the logic for adding and deleting custom tags.
-    ├── attackManager.js    # Manages the core logic for starting, updating, and ending attacks.
-    └── visualizationManager.js # Responsible for rendering all graphs and heatmaps.
+├── index.html                   # Main HTML file, loads the app and its styles.
+└── css/
+    ├── style.css                # Main styles document for application page
+└── js/
+    ├── main.js                  # Main entry point, initializes the app and sets up event listeners.
+    ├── dataStorage.js.          # Handles all interactions with localStorage for data persistence.
+    ├── uiManager.js             # Manages all DOM updates and rendering of app components.
+    ├── modalManager.js          # Controls the opening, closing, and state of all modals.
+    ├── tagManager.js            # Contains the logic for adding and deleting custom tags.
+    ├── attackManager.js.        # Manages the core logic for starting, updating, and ending attacks.
+    └── visualizationManager.js  # Responsible for rendering all graphs and heatmaps.
 ```
 
 ## Technologies Used

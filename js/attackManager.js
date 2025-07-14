@@ -1,10 +1,11 @@
+
 import * as dataStorage from './dataStorage.js';
 import * as uiManager from './uiManager.js';
 import * as modalManager from './modalManager.js';
 import * as tagManager from './tagManager.js';
 import * as visualizationManager from './visualizationManager.js';
 
-let DOM = {}; // Will store references to DOM elements
+let DOM = {};
 let selectedStartTags = []; // Temporary state for start attack modal
 let selectedMitigationTags = []; // Temporary state for add mitigation modal
 
@@ -29,12 +30,40 @@ export function handleStartAttack() {
     // Populate modal with current date/time and tags
     DOM.startDatetimeInput.value = new Date().toISOString().slice(0, 16);
     DOM.initialSeverityInput.value = 5;
-    uiManager.renderSelectableTags(DOM.startAttackTagSelection, dataStorage.getLocationTriggers(), selectedStartTags, toggleStartTagSelection);
+
+    // Initialize the new tag input and suggestion UI
+    const startTagElements = {
+        tagInput: DOM.startAttackTagInput,
+        selectedTagsContainer: DOM.startAttackSelectedTags,
+        suggestedTagsContainer: DOM.startAttackSuggestedTags
+    };
+    uiManager.renderTagInputWithSuggestions(
+        startTagElements,
+        dataStorage.getLocationTriggers(),
+        selectedStartTags,
+        toggleStartTagSelection,
+        '', // Initial filter is empty
+        'location' // Tag type for top suggestions
+    );
+
+    // Add event listener for input changes to filter suggestions
+    DOM.startAttackTagInput.oninput = () => {
+        uiManager.renderTagInputWithSuggestions(
+            startTagElements,
+            dataStorage.getLocationTriggers(),
+            selectedStartTags,
+            toggleStartTagSelection,
+            DOM.startAttackTagInput.value,
+            'location'
+        );
+    };
+
     modalManager.openModal('start-attack-modal');
 }
 
 /**
  * Toggles the selection of a tag in the start attack modal.
+ * This is called by clicking on suggested tags or selected tags.
  * @param {string} tag - The tag to toggle.
  */
 function toggleStartTagSelection(tag) {
@@ -43,9 +72,77 @@ function toggleStartTagSelection(tag) {
     } else {
         selectedStartTags.push(tag);
     }
-
-    uiManager.renderSelectableTags(DOM.startAttackTagSelection, dataStorage.getLocationTriggers(), selectedStartTags, toggleStartTagSelection);
+    // Re-render the tag input UI to reflect changes
+    const startTagElements = {
+        tagInput: DOM.startAttackTagInput,
+        selectedTagsContainer: DOM.startAttackSelectedTags,
+        suggestedTagsContainer: DOM.startAttackSuggestedTags
+    };
+    uiManager.renderTagInputWithSuggestions(
+        startTagElements,
+        dataStorage.getLocationTriggers(),
+        selectedStartTags,
+        toggleStartTagSelection,
+        DOM.startAttackTagInput.value,
+        'location'
+    );
 }
+
+/**
+ * Handles adding a new location/trigger tag from the start attack modal's input.
+ */
+export async function handleAddNewStartTagFromModal() {
+    const newTag = DOM.startAttackTagInput.value.trim();
+    if (newTag) {
+        const locationTriggers = dataStorage.getLocationTriggers();
+        if (!locationTriggers.includes(newTag)) {
+            dataStorage.updateLocationTriggers([...locationTriggers, newTag]);
+            dataStorage.saveData(); // Save the new tag
+            // Automatically select the newly added tag
+            if (!selectedStartTags.includes(newTag)) {
+                selectedStartTags.push(newTag);
+            }
+            DOM.startAttackTagInput.value = ''; // Clear input
+            // Re-render the tag input UI
+            const startTagElements = {
+                tagInput: DOM.startAttackTagInput,
+                selectedTagsContainer: DOM.startAttackSelectedTags,
+                suggestedTagsContainer: DOM.startAttackSuggestedTags
+            };
+            uiManager.renderTagInputWithSuggestions(
+                startTagElements,
+                dataStorage.getLocationTriggers(),
+                selectedStartTags,
+                toggleStartTagSelection,
+                '', // Clear filter after adding
+                'location'
+            );
+            uiManager.updateUI(); // Update main UI for tag management section
+        } else {
+            // If tag exists, just select it if not already selected
+            if (!selectedStartTags.includes(newTag)) {
+                selectedStartTags.push(newTag);
+                DOM.startAttackTagInput.value = ''; // Clear input
+                const startTagElements = {
+                    tagInput: DOM.startAttackTagInput,
+                    selectedTagsContainer: DOM.startAttackSelectedTags,
+                    suggestedTagsContainer: DOM.startAttackSuggestedTags
+                };
+                uiManager.renderTagInputWithSuggestions(
+                    startTagElements,
+                    dataStorage.getLocationTriggers(),
+                    selectedStartTags,
+                    toggleStartTagSelection,
+                    '',
+                    'location'
+                );
+            } else {
+                await uiManager.showAlert('Tag Exists', 'This location/trigger tag is already selected!');
+            }
+        }
+    }
+}
+
 
 /**
  * Confirms and creates a new attack.
@@ -58,14 +155,18 @@ async function confirmStartAttack() {
         await uiManager.showAlert('Invalid Input', 'Please provide a valid start date/time and severity (1-10).');
         return;
     }
+    if (selectedStartTags.length === 0) {
+        await uiManager.showAlert('No Tags Selected', 'Please select at least one location/trigger tag.');
+        return;
+    }
 
     const newAttack = {
-        id: Date.now(), // Unique ID for the attack
+        id: Date.now(),
         startTime: startTime,
         endTime: null,
         initialSeverity: initialSeverity,
         currentSeverity: initialSeverity,
-        locationTriggers: [...selectedStartTags], // Clone the array
+        locationTriggers: [...selectedStartTags],
         mitigationAttempts: []
     };
 
@@ -90,7 +191,34 @@ export async function handleAddMitigation() {
     // Populate modal with current date/time and tags
     DOM.mitigationDatetimeInput.value = new Date().toISOString().slice(0, 16);
     DOM.mitigationSeverityInput.value = activeAttack.currentSeverity; // Default to current severity
-    uiManager.renderSelectableTags(DOM.addMitigationTagSelection, dataStorage.getMitigations(), selectedMitigationTags, toggleMitigationTagSelection);
+
+    // Initialize the new tag input and suggestion UI for mitigation
+    const mitigationTagElements = {
+        tagInput: DOM.addMitigationTagInput,
+        selectedTagsContainer: DOM.addMitigationSelectedTags,
+        suggestedTagsContainer: DOM.addMitigationSuggestedTags
+    };
+    uiManager.renderTagInputWithSuggestions(
+        mitigationTagElements,
+        dataStorage.getMitigations(),
+        selectedMitigationTags,
+        toggleMitigationTagSelection,
+        '', // Initial filter is empty
+        'mitigation' // Tag type for top suggestions
+    );
+
+    // Add event listener for input changes to filter suggestions
+    DOM.addMitigationTagInput.oninput = () => {
+        uiManager.renderTagInputWithSuggestions(
+            mitigationTagElements,
+            dataStorage.getMitigations(),
+            selectedMitigationTags,
+            toggleMitigationTagSelection,
+            DOM.addMitigationTagInput.value,
+            'mitigation'
+        );
+    };
+
     modalManager.openModal('add-mitigation-modal');
 }
 
@@ -104,8 +232,75 @@ function toggleMitigationTagSelection(tag) {
     } else {
         selectedMitigationTags.push(tag);
     }
+    // Re-render the tag input UI to reflect changes
+    const mitigationTagElements = {
+        tagInput: DOM.addMitigationTagInput,
+        selectedTagsContainer: DOM.addMitigationSelectedTags,
+        suggestedTagsContainer: DOM.addMitigationSuggestedTags
+    };
+    uiManager.renderTagInputWithSuggestions(
+        mitigationTagElements,
+        dataStorage.getMitigations(),
+        selectedMitigationTags,
+        toggleMitigationTagSelection,
+        DOM.addMitigationTagInput.value,
+        'mitigation'
+    );
+}
 
-    uiManager.renderSelectableTags(DOM.addMitigationTagSelection, dataStorage.getMitigations(), selectedMitigationTags, toggleMitigationTagSelection);
+/**
+ * Handles adding a new mitigation tag from the add mitigation modal's input.
+ */
+export async function handleAddNewMitigationTagFromModal() {
+    const newTag = DOM.addMitigationTagInput.value.trim();
+    if (newTag) {
+        const mitigations = dataStorage.getMitigations();
+        if (!mitigations.includes(newTag)) {
+            dataStorage.updateMitigations([...mitigations, newTag]);
+            dataStorage.saveData(); // Save the new tag
+            // Automatically select the newly added tag
+            if (!selectedMitigationTags.includes(newTag)) {
+                selectedMitigationTags.push(newTag);
+            }
+            DOM.addMitigationTagInput.value = ''; // Clear input
+            // Re-render the tag input UI
+            const mitigationTagElements = {
+                tagInput: DOM.addMitigationTagInput,
+                selectedTagsContainer: DOM.addMitigationSelectedTags,
+                suggestedTagsContainer: DOM.addMitigationSuggestedTags
+            };
+            uiManager.renderTagInputWithSuggestions(
+                mitigationTagElements,
+                dataStorage.getMitigations(),
+                selectedMitigationTags,
+                toggleMitigationTagSelection,
+                '', // Clear filter after adding
+                'mitigation'
+            );
+            uiManager.updateUI(); // Update main UI for tag management section
+        } else {
+            // If tag exists, just select it if not already selected
+            if (!selectedMitigationTags.includes(newTag)) {
+                selectedMitigationTags.push(newTag);
+                DOM.addMitigationTagInput.value = ''; // Clear input
+                const mitigationTagElements = {
+                    tagInput: DOM.addMitigationTagInput,
+                    selectedTagsContainer: DOM.addMitigationSelectedTags,
+                    suggestedTagsContainer: DOM.addMitigationSuggestedTags
+                };
+                uiManager.renderTagInputWithSuggestions(
+                    mitigationTagElements,
+                    dataStorage.getMitigations(),
+                    selectedMitigationTags,
+                    toggleMitigationTagSelection,
+                    '',
+                    'mitigation'
+                );
+            } else {
+                await uiManager.showAlert('Tag Exists', 'This mitigation tag is already selected!');
+            }
+        }
+    }
 }
 
 /**
@@ -113,7 +308,7 @@ function toggleMitigationTagSelection(tag) {
  */
 async function confirmAddMitigation() {
     const activeAttack = dataStorage.getActiveAttack();
-    if (!activeAttack) return; // Should not happen if modal is only opened when activeAttack exists
+    if (!activeAttack) return;
 
     const timestamp = new Date(DOM.mitigationDatetimeInput.value).getTime();
     const newSeverity = parseInt(DOM.mitigationSeverityInput.value);
@@ -122,15 +317,19 @@ async function confirmAddMitigation() {
         await uiManager.showAlert('Invalid Input', 'Please provide a valid date/time and severity (1-10).');
         return;
     }
+    if (selectedMitigationTags.length === 0) {
+        await uiManager.showAlert('No Tags Selected', 'Please select at least one mitigation tag.');
+        return;
+    }
 
     const mitigationAttempt = {
         timestamp: timestamp,
-        tags: [...selectedMitigationTags], // Clone the array
+        tags: [...selectedMitigationTags],
         severityAfter: newSeverity
     };
 
     dataStorage.addMitigationAttempt(mitigationAttempt);
-    dataStorage.updateActiveAttackSeverity(newSeverity); // Update current severity
+    dataStorage.updateActiveAttackSeverity(newSeverity);
     dataStorage.saveData();
     uiManager.updateUI();
     modalManager.closeModal('add-mitigation-modal');
@@ -146,11 +345,11 @@ export async function handleEndAttack() {
     const confirmed = await uiManager.showAlert('Confirm End Attack', 'Are you sure you want to end this attack?', true);
     if (confirmed) {
         activeAttack.endTime = Date.now();
-        dataStorage.addAttack(activeAttack); // Add to historical attacks
-        dataStorage.setActiveAttack(null); // Clear active attack
+        dataStorage.addAttack(activeAttack);
+        dataStorage.setActiveAttack(null);
         dataStorage.saveData();
         uiManager.updateUI();
-        visualizationManager.renderVisualizations(); // Re-render visualizations as data has changed
+        visualizationManager.renderVisualizations();
     }
 }
 

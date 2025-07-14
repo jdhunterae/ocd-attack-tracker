@@ -1,6 +1,11 @@
+
 import * as dataStorage from './dataStorage.js';
 
 let DOM = {}; // Will store references to DOM elements
+
+// Store top tags globally within this module
+let topTriggers = [];
+let topMitigations = [];
 
 /**
  * Initializes the VisualizationManager with DOM elements.
@@ -150,7 +155,7 @@ function renderSeverityHeatmap() {
 }
 
 /**
- * Renders the top triggers and mitigations lists.
+ * Renders the top triggers and mitigations lists and stores them in module variables.
  */
 function renderTopTags() {
     const attacks = dataStorage.getAttacks();
@@ -170,33 +175,49 @@ function renderTopTags() {
         }
     });
 
-    // Sort and display top triggers
-    const sortedTriggers = Array.from(triggerCounts.entries())
+    // Sort and store top triggers
+    topTriggers = Array.from(triggerCounts.entries())
         .sort((a, b) => b[1] - a[1])
         .slice(0, 5); // Top 5
     DOM.topTriggersList.innerHTML = '';
-    if (sortedTriggers.length === 0) {
+    if (topTriggers.length === 0) {
         DOM.topTriggersList.innerHTML = '<li class="text-gray-500">No trigger data yet.</li>';
     } else {
-        sortedTriggers.forEach(([tag, count]) => {
+        topTriggers.forEach(([tag, count]) => {
             const li = document.createElement('li');
             li.textContent = `${tag} (${count} attacks)`;
             DOM.topTriggersList.appendChild(li);
         });
     }
 
-    // Sort and display top mitigations
-    const sortedMitigations = Array.from(mitigationCounts.entries())
+    // Sort and store top mitigations
+    topMitigations = Array.from(mitigationCounts.entries())
         .sort((a, b) => b[1] - a[1])
         .slice(0, 5); // Top 5
     DOM.topMitigationsList.innerHTML = '';
-    if (sortedMitigations.length === 0) {
+    if (topMitigations.length === 0) {
         DOM.topMitigationsList.innerHTML = '<li class="text-gray-500">No mitigation data yet.</li>';
     } else {
-        sortedMitigations.forEach(([tag, count]) => {
+        topMitigations.forEach(([tag, count]) => {
             const li = document.createElement('li');
             li.textContent = `${tag} (${count} uses)`;
             DOM.topMitigationsList.appendChild(li);
         });
     }
+}
+
+/**
+ * Returns the currently calculated top trigger tags.
+ * @returns {Array<[string, number]>} An array of [tag, count] pairs for top triggers.
+ */
+export function getTopTriggers() {
+    return topTriggers;
+}
+
+/**
+ * Returns the currently calculated top mitigation tags.
+ * @returns {Array<[string, number]>} An array of [tag, count] pairs for top mitigations.
+ */
+export function getTopMitigations() {
+    return topMitigations;
 }

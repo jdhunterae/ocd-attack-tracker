@@ -1,4 +1,3 @@
-// src/main.js
 import * as dataStorage from './dataStorage.js';
 import * as uiManager from './uiManager.js';
 import * as modalManager from './modalManager.js';
@@ -24,14 +23,22 @@ const DOM = {
     startAttackModal: document.getElementById('start-attack-modal'),
     startDatetimeInput: document.getElementById('start-datetime'),
     initialSeverityInput: document.getElementById('initial-severity'),
-    startAttackTagSelection: document.getElementById('start-attack-tag-selection'),
+    // Updated tag selection elements for Start Attack Modal
+    startAttackTagInput: document.getElementById('start-attack-tag-input'),
+    addStartAttackTagBtn: document.getElementById('add-start-attack-tag-btn'),
+    startAttackSelectedTags: document.getElementById('start-attack-selected-tags'),
+    startAttackSuggestedTags: document.getElementById('start-attack-suggested-tags'),
     confirmStartAttackBtn: document.getElementById('confirm-start-attack-btn'),
 
     // Add Mitigation Modal
     addMitigationModal: document.getElementById('add-mitigation-modal'),
     mitigationDatetimeInput: document.getElementById('mitigation-datetime'),
     mitigationSeverityInput: document.getElementById('mitigation-severity'),
-    addMitigationTagSelection: document.getElementById('add-mitigation-tag-selection'),
+    // Updated tag selection elements for Add Mitigation Modal
+    addMitigationTagInput: document.getElementById('add-mitigation-tag-input'),
+    addMitigationTagBtn: document.getElementById('add-mitigation-tag-btn'),
+    addMitigationSelectedTags: document.getElementById('add-mitigation-selected-tags'),
+    addMitigationSuggestedTags: document.getElementById('add-mitigation-suggested-tags'),
     confirmAddMitigationBtn: document.getElementById('confirm-add-mitigation-btn'),
 
     // Tag Management Section
@@ -72,7 +79,7 @@ function initializeApp() {
 
     // Pass DOM elements and initial data to managers that need them
     uiManager.init(DOM);
-    modalManager.init(DOM); // Pass custom alert modal elements
+    modalManager.init(DOM);
     tagManager.init(DOM);
     attackManager.init(DOM);
     visualizationManager.init(DOM);
@@ -92,7 +99,7 @@ function setupEventListeners() {
     DOM.addMitigationBtn.addEventListener('click', () => attackManager.handleAddMitigation());
     DOM.endAttackBtn.addEventListener('click', () => attackManager.handleEndAttack());
 
-    // Tag management buttons and inputs
+    // Tag management buttons and inputs (for the main tag management section)
     DOM.addLocationTriggerTagBtn.addEventListener('click', () => tagManager.addLocationTriggerTag());
     DOM.newLocationTriggerTagInput.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') tagManager.addLocationTriggerTag();
@@ -101,6 +108,18 @@ function setupEventListeners() {
     DOM.newMitigationReliefTagInput.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') tagManager.addMitigationReliefTag();
     });
+
+    // New Tag Input/Add for Modals
+    DOM.addStartAttackTagBtn.addEventListener('click', () => attackManager.handleAddNewStartTagFromModal());
+    DOM.startAttackTagInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') attackManager.handleAddNewStartTagFromModal();
+    });
+
+    DOM.addMitigationTagBtn.addEventListener('click', () => attackManager.handleAddNewMitigationTagFromModal());
+    DOM.addMitigationTagInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') attackManager.handleAddNewMitigationTagFromModal();
+    });
+
 
     // Modal close buttons (using event delegation for simplicity)
     document.querySelectorAll('.close-button').forEach(button => {

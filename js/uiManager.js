@@ -1,6 +1,7 @@
 import * as dataStorage from './dataStorage.js';
 import * as modalManager from './modalManager.js';
 import * as attackManager from './attackManager.js';
+import * as visualizationManager from './visualizationManager.js';
 
 let DOM = {};
 
@@ -61,50 +62,89 @@ export function renderTags(container, tagsArray, deleteHandler = null) {
         container.appendChild(badge);
     });
 
-    // Attach event listener to the container for delegation
     if (deleteHandler) {
-        // Remove existing listener to prevent duplicates
-        container.removeEventListener('click', handleTagDeleteClick);
-        // Add new listener. The handler will use the deleteHandler passed to renderTags.
-        container.addEventListener('click', (event) => {
-            if (event.target.classList.contains('tag-badge-delete')) {
-                const tagToDelete = event.target.dataset.tag;
-                deleteHandler(tagToDelete); // Call the provided deleteHandler directly
-            }
-        });
+        container.removeEventListener('click', handleTagDeleteClick); // Remove existing listener
+        container.addEventListener('click', handleTagDeleteClick); // Add new listener
+    }
+
+    function handleTagDeleteClick(event) {
+        if (event.target.classList.contains('tag-badge-delete')) {
+            const tagToDelete = event.target.dataset.tag;
+            deleteHandler(tagToDelete);
+        }
     }
 }
 
 /**
- * Event handler for deleting tags using delegation.
- * This function is internal to uiManager and is called by the event listener set in renderTags.
- * It's kept for clarity, though the logic is now directly in the anonymous function in renderTags.
- * @param {Event} event - The click event.
+ * Renders the tag input field, selected tags, and suggested tags within a modal.
+ * @param {object} elements - Object containing DOM elements for this specific tag section (e.g., tagInput, selectedTagsContainer, suggestedTagsContainer).
+ * @param {string[]} allAvailableTags - All tags the user has created (e.g., locationTriggers or mitigations).
+ * @param {string[]} currentSelectedTags - The tags currently selected for the attack/mitigation.
+ * @param {function} toggleSelectionHandler - Function to call when a suggested tag is clicked (to add/remove it from selected).
+ * @param {string} inputFilter - The current text in the input field for filtering suggestions.
+ * @param {string} tagType - 'location' or 'mitigation' to determine which top tags to show.
  */
-function handleTagDeleteClick(event) {
-    // This function's content is now effectively inlined in renderTags's event listener.
-    // It's kept as a placeholder for the concept of delegation.
-}
-
-
-/**
- * Renders selectable tags for modals.
- * @param {HTMLElement} container - The DOM element to render tags into.
- * @param {string[]} tagsArray - The array of tags to display.
- * @param {string[]} selectedTags - Array of currently selected tags.
- * @param {function} toggleHandler - Function to call when a tag is clicked.
- */
-export function renderSelectableTags(container, tagsArray, selectedTags, toggleHandler) {
-    container.innerHTML = '';
-    tagsArray.forEach(tag => {
+export function renderTagInputWithSuggestions(elements, allAvailableTags, currentSelectedTags, toggleSelectionHandler, inputFilter = '', tagType) {
+    // Render selected tags
+    elements.selectedTagsContainer.innerHTML = '';
+    currentSelectedTags.forEach(tag => {
         const badge = document.createElement('span');
-        const isSelected = selectedTags.includes(tag);
-        badge.className = `tag-badge cursor-pointer ${isSelected ? 'bg-indigo-600 text-white' : 'bg-indigo-100 text-indigo-600'}`;
+        badge.className = 'tag-badge bg-indigo-600 text-white cursor-pointer';
         badge.textContent = tag;
-        badge.onclick = () => toggleHandler(tag);
-        container.appendChild(badge);
+        const removeBtn = document.createElement('span');
+        removeBtn.className = 'tag-badge-delete';
+        removeBtn.innerHTML = '&times;';
+        removeBtn.onclick = () => toggleSelectionHandler(tag); // Click to remove from selected
+        badge.appendChild(removeBtn);
+        elements.selectedTagsContainer.appendChild(badge);
     });
+
+    // Filter and render suggested tags
+    elements.suggestedTagsContainer.innerHTML = '';
+    const filteredTags = allAvailableTags
+        .filter(tag => tag.toLowerCase().includes(inputFilter.toLowerCase()) && !currentSelectedTags.includes(tag))
+        .sort((a, b) => a.localeCompare(b)); // Sort alphabetically
+
+    // Get top tags from visualizationManager
+    const topTags = tagType === 'location' ? visualizationManager.getTopTriggers() : visualizationManager.getTopMitigations();
+    const topTagNames = topTags.map(item => item[0]); // Extract tag names
+
+    // Combine filtered tags with top tags, prioritize top tags, ensure uniqueness
+    const suggestionsToShow = [];
+    // Add top tags first, if not already selected
+    topTagNames.forEach(tag => {
+        if (!currentSelectedTags.includes(tag) && !suggestionsToShow.includes(tag)) {
+            suggestionsToShow.push(tag);
+        }
+    });
+
+    // Add other filtered tags, ensuring they are not duplicates and not already in top suggestions
+    filteredTags.forEach(tag => {
+        if (!currentSelectedTags.includes(tag) && !suggestionsToShow.includes(tag) && suggestionsToShow.length < 10) { // Limit total suggestions
+            suggestionsToShow.push(tag);
+        }
+    });
+
+    // Sort the final list of suggestions
+    suggestionsToShow.sort((a, b) => a.localeCompare(b));
+
+    suggestionsToShow.slice(0, 10).forEach(tag => { // Display a maximum of 10 suggestions
+        const badge = document.createElement('span');
+        badge.className = 'tag-badge bg-indigo-100 text-indigo-600 cursor-pointer';
+        badge.textContent = tag;
+        badge.onclick = () => toggleSelectionHandler(tag); // Click to add to selected
+        elements.suggestedTagsContainer.appendChild(badge);
+    });
+
+    if (suggestionsToShow.length === 0 && inputFilter.length > 0 && !allAvailableTags.includes(inputFilter)) {
+        // Optionally show a message if no suggestions and input is new
+        const noResults = document.createElement('span');
+        noResults.className = 'text-gray-500 text-sm';
+        noResults.textContent = `No matching tags. Press "Add" to create "${inputFilter}".`;
+        elements.suggestedTagsContainer.appendChild(noResults);
+    }
 }
+
 
 /**
  * Updates the main UI display based on the active attack status.
@@ -155,17 +195,15 @@ export function updateUI() {
  */
 export function showAlert(title, message, isConfirm = false) {
     return new Promise(resolve => {
-        // Defensive checks: Ensure elements exist before trying to access properties
         if (!DOM.customAlertModal || !DOM.customAlertTitle || !DOM.customAlertMessage || !DOM.customAlertOkBtn || !DOM.customAlertCancelBtn) {
             console.error("ERROR: Custom alert modal elements are missing from DOM. Cannot show custom alert.");
-            // Fallback to native alert if elements are missing, though this should be avoided in production
             if (isConfirm) {
                 resolve(confirm(message));
             } else {
                 alert(message);
                 resolve(true);
             }
-            return; // Exit the function early
+            return;
         }
 
         DOM.customAlertTitle.textContent = title;
@@ -173,7 +211,6 @@ export function showAlert(title, message, isConfirm = false) {
 
         DOM.customAlertCancelBtn.classList.toggle('hidden', !isConfirm);
 
-        // Clear previous listeners to prevent multiple triggers
         DOM.customAlertOkBtn.onclick = null;
         DOM.customAlertCancelBtn.onclick = null;
 

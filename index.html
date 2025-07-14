@@ -17,7 +17,6 @@
     <link rel="stylesheet" href="./css/style.css" />
 </head>
 
-
 <body class="bg-gray-100 min-h-screen flex items-center justify-center py-8">
     <div class="container">
         <h1 class="section-title">Mental Health Tracker</h1>
@@ -122,8 +121,19 @@
             <input type="number" id="initial-severity" min="1" max="10" value="5" class="mb-4">
 
             <label class="block text-gray-700 text-sm font-bold mb-2">Select Location/Trigger Tags:</label>
-            <div id="start-attack-tag-selection" class="flex flex-wrap gap-2 mb-4">
-                <!-- Tags will be loaded here -->
+            <!-- New Tag Selection UI for Start Attack Modal -->
+            <div class="mb-4">
+                <div class="flex items-center gap-2 mb-2">
+                    <input type="text" id="start-attack-tag-input" placeholder="Search or add new tag" class="flex-1">
+                    <button id="add-start-attack-tag-btn" class="btn btn-secondary px-4 py-2">Add</button>
+                </div>
+                <div id="start-attack-selected-tags" class="flex flex-wrap gap-2 mb-2">
+                    <!-- Selected tags will be rendered here -->
+                </div>
+                <p class="text-sm text-gray-600 mb-1">Suggested Tags:</p>
+                <div id="start-attack-suggested-tags" class="flex flex-wrap gap-2">
+                    <!-- Suggested tags will be rendered here -->
+                </div>
             </div>
 
             <button id="confirm-start-attack-btn" class="btn btn-primary w-full">Confirm Start Attack</button>
@@ -144,8 +154,19 @@
             <input type="number" id="mitigation-severity" min="1" max="10" class="mb-4">
 
             <label class="block text-gray-700 text-sm font-bold mb-2">Select Mitigation Tags:</label>
-            <div id="add-mitigation-tag-selection" class="flex flex-wrap gap-2 mb-4">
-                <!-- Tags will be loaded here -->
+            <!-- New Tag Selection UI for Add Mitigation Modal -->
+            <div class="mb-4">
+                <div class="flex items-center gap-2 mb-2">
+                    <input type="text" id="add-mitigation-tag-input" placeholder="Search or add new tag" class="flex-1">
+                    <button id="add-mitigation-tag-btn" class="btn btn-secondary px-4 py-2">Add</button>
+                </div>
+                <div id="add-mitigation-selected-tags" class="flex flex-wrap gap-2 mb-2">
+                    <!-- Selected tags will be rendered here -->
+                </div>
+                <p class="text-sm text-gray-600 mb-1">Suggested Tags:</p>
+                <div id="add-mitigation-suggested-tags" class="flex flex-wrap gap-2">
+                    <!-- Suggested tags will be rendered here -->
+                </div>
             </div>
 
             <button id="confirm-add-mitigation-btn" class="btn btn-primary w-full">Add Mitigation</button>
