@@ -11,7 +11,6 @@ let DOM = {};
  */
 export function init(domElements) {
     DOM = domElements;
-    // console.log('UIManager initialized with DOM elements:', DOM); // Uncomment for debugging if needed
 }
 
 /**
@@ -27,6 +26,28 @@ function formatDateTime(timestamp) {
         hour: '2-digit',
         minute: '2-digit'
     });
+}
+
+/**
+ * Calculates the duration between two timestamps in a readable format.
+ * @param {number} startTime - The start timestamp.
+ * @param {number} endTime - The end timestamp.
+ * @returns {string} Formatted duration string.
+ */
+function formatDuration(startTime, endTime) {
+    const durationMs = endTime - startTime;
+    const seconds = Math.floor((durationMs / 1000) % 60);
+    const minutes = Math.floor((durationMs / (1000 * 60)) % 60);
+    const hours = Math.floor((durationMs / (1000 * 60 * 60)) % 24);
+    const days = Math.floor(durationMs / (1000 * 60 * 60 * 24));
+
+    let parts = [];
+    if (days > 0) parts.push(`${days}d`);
+    if (hours > 0) parts.push(`${hours}h`);
+    if (minutes > 0) parts.push(`${minutes}m`);
+    if (seconds > 0 || parts.length === 0) parts.push(`${seconds}s`); // Always show seconds if no other values
+
+    return parts.join(' ');
 }
 
 /**
@@ -183,6 +204,61 @@ export function updateUI() {
     });
     renderTags(DOM.mitigationReliefTagsDiv, mitigations, (tag) => {
         attackManager.requestDeleteMitigationReliefTag(tag);
+    });
+
+    // Render attack history
+    renderAttackHistory();
+}
+
+/**
+ * Renders the historical attacks into the attack history section.
+ */
+function renderAttackHistory() {
+    const attacks = dataStorage.getAttacks();
+    DOM.attackHistoryList.innerHTML = ''; // Clear previous history list
+
+    if (attacks.length === 0) {
+        DOM.noHistoryMessage.classList.remove('hidden');
+        return;
+    } else {
+        DOM.noHistoryMessage.classList.add('hidden');
+    }
+
+    // Sort attacks by end time, newest first
+    const sortedAttacks = [...attacks].sort((a, b) => b.endTime - a.endTime);
+
+    sortedAttacks.forEach(attack => {
+        const attackCard = document.createElement('div');
+        attackCard.className = 'bg-white p-4 rounded-lg shadow-sm border border-gray-200';
+
+        const startTime = formatDateTime(attack.startTime);
+        const endTime = attack.endTime ? formatDateTime(attack.endTime) : 'Ongoing';
+        const duration = attack.endTime ? formatDuration(attack.startTime, attack.endTime) : 'N/A';
+
+        let mitigationDetails = '';
+        if (attack.mitigationAttempts && attack.mitigationAttempts.length > 0) {
+            mitigationDetails = `
+                <h4 class="font-semibold text-sm mt-2 mb-1 text-gray-700">Mitigations:</h4>
+                <ul class="list-disc list-inside text-sm text-gray-600">
+            `;
+            attack.mitigationAttempts.forEach(attempt => {
+                mitigationDetails += `<li>${formatDateTime(attempt.timestamp)}: ${attempt.tags.join(', ')} (Severity to <span class="font-bold" style="color: ${getSeverityColor(attempt.severityAfter)};">${attempt.severityAfter}</span>)</li>`;
+            });
+            mitigationDetails += `</ul>`;
+        } else {
+            mitigationDetails = `<p class="text-sm text-gray-600 mt-2">No mitigations recorded.</p>`;
+        }
+
+        attackCard.innerHTML = `
+            <p class="text-md font-bold text-gray-800">Started: ${startTime}</p>
+            <p class="text-md font-bold text-gray-800">Ended: ${endTime}</p>
+            <p class="text-sm text-gray-700">Duration: ${duration}</p>
+            <p class="text-sm text-gray-700">Initial Severity: <span class="font-bold" style="color: ${getSeverityColor(attack.initialSeverity)};">${attack.initialSeverity}</span></p>
+            <p class="text-sm text-gray-700">Final Severity: <span class="font-bold" style="color: ${getSeverityColor(attack.currentSeverity)};">${attack.currentSeverity}</span></p>
+            <p class="text-sm text-gray-700">Triggers: ${attack.locationTriggers.join(', ')}</p>
+            ${mitigationDetails}
+        `;
+        DOM.attackHistoryList.appendChild(attackCard);
     });
 }
 

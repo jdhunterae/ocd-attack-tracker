@@ -55,6 +55,11 @@ const DOM = {
     topTriggersList: document.getElementById('top-triggers-list'),
     topMitigationsList: document.getElementById('top-mitigations-list'),
 
+    // Attack History Section
+    attackHistoryList: document.getElementById('attack-history-list'),
+    noHistoryMessage: document.getElementById('no-history-message'),
+
+
     // Custom Alert Modal
     customAlertModal: document.getElementById('custom-alert-modal'),
     customAlertTitle: document.getElementById('custom-alert-title'),
