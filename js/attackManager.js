@@ -2,6 +2,7 @@ import * as dataStorage from './dataStorage.js';
 import * as uiManager from './uiManager.js';
 import * as modalManager from './modalManager.js';
 import * as tagManager from './tagManager.js';
+import * as visualizationManager from './visualizationManager.js';
 
 let DOM = {}; // Will store references to DOM elements
 let selectedStartTags = []; // Temporary state for start attack modal

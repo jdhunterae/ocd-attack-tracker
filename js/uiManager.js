@@ -10,6 +10,7 @@ let DOM = {};
  */
 export function init(domElements) {
     DOM = domElements;
+    // console.log('UIManager initialized with DOM elements:', DOM); // Uncomment for debugging if needed
 }
 
 /**
@@ -54,8 +55,6 @@ export function renderTags(container, tagsArray, deleteHandler = null) {
             const deleteBtn = document.createElement('span');
             deleteBtn.className = 'tag-badge-delete';
             deleteBtn.innerHTML = '&times;';
-
-            // Use a data attribute to store the tag for deletion handler
             deleteBtn.dataset.tag = tag;
             badge.appendChild(deleteBtn);
         }
@@ -64,25 +63,27 @@ export function renderTags(container, tagsArray, deleteHandler = null) {
 
     // Attach event listener to the container for delegation
     if (deleteHandler) {
-        container.removeEventListener('click', handleTagDeleteClick); // Prevent duplicate listeners
-        container.addEventListener('click', handleTagDeleteClick);
+        // Remove existing listener to prevent duplicates
+        container.removeEventListener('click', handleTagDeleteClick);
+        // Add new listener. The handler will use the deleteHandler passed to renderTags.
+        container.addEventListener('click', (event) => {
+            if (event.target.classList.contains('tag-badge-delete')) {
+                const tagToDelete = event.target.dataset.tag;
+                deleteHandler(tagToDelete); // Call the provided deleteHandler directly
+            }
+        });
     }
 }
 
 /**
  * Event handler for deleting tags using delegation.
+ * This function is internal to uiManager and is called by the event listener set in renderTags.
+ * It's kept for clarity, though the logic is now directly in the anonymous function in renderTags.
  * @param {Event} event - The click event.
  */
 function handleTagDeleteClick(event) {
-    if (event.target.classList.contains('tag-badge-delete')) {
-        const tagToDelete = event.target.dataset.tag;
-
-        // The deleteHandler passed to renderTags will be responsible for calling the correct tagManager function
-        // For now, we'll assume a global event listener or direct call from tagManager.
-        // This structure needs a slight adjustment in tagManager or script.js to work.
-        // For now, we'll make the deleteHandler directly call the tagManager function.
-        // This function is just for internal delegation.
-    }
+    // This function's content is now effectively inlined in renderTags's event listener.
+    // It's kept as a placeholder for the concept of delegation.
 }
 
 
@@ -138,10 +139,6 @@ export function updateUI() {
 
     // Always re-render tag management sections
     renderTags(DOM.locationTriggerTagsDiv, locationTriggers, (tag) => {
-        // This is a callback for the delete button. We need to call a function in tagManager.
-        // To avoid circular dependencies, we'll pass a direct reference or use a global event.
-        // For now, we'll make this a direct call via attackManager (which has access to tagManager).
-        // A better approach might be to have script.js handle the top-level delete events.
         attackManager.requestDeleteLocationTriggerTag(tag);
     });
     renderTags(DOM.mitigationReliefTagsDiv, mitigations, (tag) => {
@@ -158,11 +155,25 @@ export function updateUI() {
  */
 export function showAlert(title, message, isConfirm = false) {
     return new Promise(resolve => {
+        // Defensive checks: Ensure elements exist before trying to access properties
+        if (!DOM.customAlertModal || !DOM.customAlertTitle || !DOM.customAlertMessage || !DOM.customAlertOkBtn || !DOM.customAlertCancelBtn) {
+            console.error("ERROR: Custom alert modal elements are missing from DOM. Cannot show custom alert.");
+            // Fallback to native alert if elements are missing, though this should be avoided in production
+            if (isConfirm) {
+                resolve(confirm(message));
+            } else {
+                alert(message);
+                resolve(true);
+            }
+            return; // Exit the function early
+        }
+
         DOM.customAlertTitle.textContent = title;
         DOM.customAlertMessage.textContent = message;
 
         DOM.customAlertCancelBtn.classList.toggle('hidden', !isConfirm);
 
+        // Clear previous listeners to prevent multiple triggers
         DOM.customAlertOkBtn.onclick = null;
         DOM.customAlertCancelBtn.onclick = null;
 
