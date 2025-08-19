@@ -1,0 +1,99 @@
+<!doctype html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <title>Migraine Tracker (Web)</title>
+    <style>
+        body {
+            font-family: system-ui, sans-serif;
+            margin: 2rem;
+        }
+
+        pre {
+            background: #f6f8fa;
+            padding: 1rem;
+            overflow: auto;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Migraine Tracker</h1>
+
+    <section id="auth">
+        <h2>Login</h2>
+
+        <input type="email" name="email" id="email" placeholder="you@email.com" />
+        <input type="password" placeholder="••••••••" id="password" />
+        <button id="login">Sign in</button>
+        <button id="signup">Sign up</button>
+        <button id="logout">Sign out</button>
+        <p id="status"></p>
+    </section>
+
+    <section>
+        <h2>Your Tags</h2>
+        <button id="load">Load Tags</button>
+        <pre id="out"></pre>
+    </section>
+
+    <script type="module">
+        import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+        // 1) Initialize
+        const supabaseUrl = 'https://bmtfbvatvkxvpukaxuvq.supabase.co';
+        const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJtdGZidmF0dmt4dnB1a2F4dXZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU2MDY4MjYsImV4cCI6MjA3MTE4MjgyNn0.jdeorQzapq1SnU9aVlH9ZOQ0QoztksmYRitujlX68u8';
+        const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+            auth: { persistSession: true, detectSessionInUrl: true }
+        });
+
+        // 2) Basic auth UI
+        const el = (id) => document.getElementById(id);
+        const status = el('status');
+
+        async function showSession() {
+            const { data: { session } } = await supabase.auth.getSession();
+            status.textContent = session
+                ? `Signed in as ${session.user.email} (${session.user.id})`
+                : "Not signed in";
+        }
+
+        el('login').onclick = async () => {
+            const email = el('email').value.trim();
+            const password = el('password').value;
+            const { error } = await supabase.auth.signInWithPassword({ email, password });
+            if (error) alert(error.message);
+            await showSession();
+        };
+
+        el('signup').onclick = async () => {
+            const email = el('email').value.trim();
+            const password = el('password').value;
+            const { error } = await supabase.auth.signUp({ email, password });
+            if (error) alert(error.message);
+            await showSession();
+        };
+
+        el('logout').onclick = async () => {
+            await supabase.auth.signOut();
+            await showSession();
+        };
+
+        el('load').onclick = async () => {
+            const { data, error } = await supabase
+                .from('tags')
+                .select('id,name,type')
+                .order('type', { ascending: true })
+                .order('name', { ascending: true });
+            el('out').textContent = error ? error.message : JSON.stringify(data, null, 2);
+        };
+
+
+        // handle redirect after OAuth/email link (hash in URL)
+        await showSession();
+    </script>
+</body>
+
+</html>
